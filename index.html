@@ -363,11 +363,10 @@
             <h2><i class="fas fa-credit-card"></i> 온라인 수강료 결제</h2>
             <p>더베스트 어학원은 신용카드, 계좌이체, 가상계좌 등 다양한 결제 방법을 지원하는 PG결제 시스템을 연동하였습니다.</p>
             <p>아래 버튼을 클릭하면 결제 페이지로 이동합니다.</p>
-            
             <a href="payment.html" class="payment-btn" id="paymentButton">
                 <i class="fas fa-lock"></i> 안전 결제하기
             </a>
-            
+                      
             <div class="discount-info" style="margin-top: 25px;">
                 <h3><i class="fas fa-shield-alt"></i> 안전한 결제 보장</h3>
                 <p>모든 결제 정보는 SSL 암호화를 통해 안전하게 전송됩니다.</p>
@@ -395,26 +394,25 @@
         </footer>
     </div>
 
+</script>
     <script>
-        // 결제 버튼 클릭 이벤트
-        document.getElementById('paymentButton').addEventListener('click', function(e) {
-            e.preventDefault();
-            alert('PG결제 시스템이 연동되면 결제 페이지로 이동합니다.\n현재는 데모 버전입니다.');
-            
-            // 실제 구현 시 PG사 결제 페이지로 리디렉션
-            // window.location.href = 'https://pg-service.com/payment';
+    // 결제 버튼 클릭 이벤트 - 바로 payment.html로 이동
+    document.getElementById('paymentButton').addEventListener('click', function(e) {
+        // e.preventDefault(); // 이 줄을 주석처리하거나 삭제합니다
+        // alert('PG결제 시스템이 연동되면 결제 페이지로 이동합니다.\n현재는 데모 버전입니다.');
+        // 이제 아무것도 하지 않고 링크가 동작하도록 합니다
+    });
+    
+    // 테이블 행 호버 효과 강화
+    const tableRows = document.querySelectorAll('tr');
+    tableRows.forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.style.backgroundColor = '#f1f8ff';
         });
-        
-        // 테이블 행 호버 효과 강화
-        const tableRows = document.querySelectorAll('tr');
-        tableRows.forEach(row => {
-            row.addEventListener('mouseenter', function() {
-                this.style.backgroundColor = '#f1f8ff';
-            });
-            row.addEventListener('mouseleave', function() {
-                this.style.backgroundColor = '';
-            });
+        row.addEventListener('mouseleave', function() {
+            this.style.backgroundColor = '';
         });
+    });
     </script>
 </body>
 </html>
