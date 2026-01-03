@@ -11,6 +11,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     
     <style>
+        /* ... 기존 CSS 스타일은 동일하게 유지 ... */
         * {
             margin: 0;
             padding: 0;
@@ -321,31 +322,17 @@
             color: #28a745;
         }
         
-        .firebase-status {
-            padding: 10px;
+        .debug-info {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
             border-radius: 5px;
-            margin-bottom: 20px;
-            text-align: center;
+            padding: 15px;
+            margin-top: 20px;
+            font-family: monospace;
             font-size: 0.9rem;
-            display: none;
-        }
-        
-        .status-success {
-            background-color: #d4edda;
-            color: #155724;
-            border-left: 4px solid #28a745;
-        }
-        
-        .status-error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border-left: 4px solid #dc3545;
-        }
-        
-        .status-loading {
-            background-color: #d1ecf1;
-            color: #0c5460;
-            border-left: 4px solid #17a2b8;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
         }
         
         footer {
@@ -392,9 +379,7 @@
             </a>
         </header>
         
-        <div id="firebase-status" class="firebase-status">
-            <!-- Firebase 상태 표시 -->
-        </div>
+        <div id="firebase-status" style="display: none; padding: 10px; margin-bottom: 20px; border-radius: 5px;"></div>
         
         <div class="payment-container">
             <div class="step-indicator">
@@ -583,16 +568,20 @@
                     <button class="btn btn-secondary" onclick="prevStep(2)">이전 단계</button>
                     <button class="btn btn-primary" onclick="processPayment()">Firestore에 저장하기</button>
                 </div>
+                
+                <div class="debug-info" id="debug-info" style="display: none;">
+                    <!-- 디버그 정보 표시 -->
+                </div>
             </div>
             
             <!-- STEP 4: 결제 완료 -->
             <div id="step4-content" class="step-content" style="display: none;">
                 <div class="success-message">
                     <i class="fas fa-check-circle"></i>
-                    <h2>결제 정보가 저장되었습니다!</h2>
+                    <h2 id="result-title">결제 정보가 저장되었습니다!</h2>
                     <p id="payment-details">결제 정보가 여기에 표시됩니다.</p>
                     <p id="firestore-id"></p>
-                    <p>실제 PG결제 연동 시 결제 페이지로 이동합니다.</p>
+                    <p id="result-message">실제 PG결제 연동 시 결제 페이지로 이동합니다.</p>
                     <div style="margin-top: 30px;">
                         <button class="btn btn-primary" onclick="window.location.href='index.html'">메인 페이지로 이동</button>
                         <button class="btn btn-secondary" onclick="viewAllPayments()" style="margin-left: 10px;">
@@ -614,45 +603,64 @@
     </div>
 
     <script>
-        // ==================== FIREBASE 초기화 ====================
-        // 여기에 Firebase 콘솔에서 복사한 실제 구성 정보를 붙여넣으세요
+        // ==================== FIREBASE 구성 정보 ====================
+        // 중요: Firebase 콘솔에서 복사한 실제 구성 정보로 교체해주세요!
+        // Firebase Console > 프로젝트 설정 > 일반 > 앱 > Firebase SDK snippet > 구성
         const firebaseConfig = {
-            apiKey: "AIzaSyDEXAMPLE1234567890",
-            authDomain: "your-project.firebaseapp.com",
-            projectId: "your-project-id",
+            apiKey: "AIzaSyDEXAMPLE1234567890",  // 이 부분을 실제 값으로 교체
+            authDomain: "your-project.firebaseapp.com",  // 이 부분을 실제 값으로 교체
+            projectId: "your-project-id",  // 이 부분을 실제 값으로 교체
             storageBucket: "your-project.appspot.com",
             messagingSenderId: "1234567890",
             appId: "1:1234567890:web:abcdef123456"
         };
         
-        // Firebase 초기화
-        let db;
+        // Firebase 변수
+        let db = null;
         let firebaseInitialized = false;
         
+        // ==================== Firebase 초기화 ====================
         function initializeFirebase() {
+            console.log("Firebase 초기화 시작...");
+            
             try {
                 // Firebase 앱 초기화
                 firebase.initializeApp(firebaseConfig);
-                db = firebase.firestore();
-                firebaseInitialized = true;
+                console.log("Firebase 앱 초기화 완료");
                 
-                showFirebaseStatus("Firebase가 성공적으로 초기화되었습니다.", "success");
-                console.log("Firebase 초기화 완료");
+                // Firestore 초기화
+                db = firebase.firestore();
+                console.log("Firestore 초기화 완료");
+                
+                // Firestore 설정 (필요시)
+                db.settings({
+                    timestampsInSnapshots: true
+                });
+                
+                firebaseInitialized = true;
+                showStatus("Firebase가 성공적으로 초기화되었습니다.", "success");
+                console.log("Firebase 초기화 상태: 성공");
                 
             } catch (error) {
-                showFirebaseStatus("Firebase 초기화 실패: " + error.message, "error");
                 console.error("Firebase 초기화 오류:", error);
+                showStatus("Firebase 초기화 실패: " + error.message, "error");
                 firebaseInitialized = false;
             }
         }
         
-        function showFirebaseStatus(message, type) {
+        // ==================== 상태 표시 함수 ====================
+        function showStatus(message, type) {
             const statusDiv = document.getElementById('firebase-status');
             statusDiv.textContent = message;
-            statusDiv.className = `firebase-status status-${type}`;
+            statusDiv.style.backgroundColor = type === 'success' ? '#d4edda' : 
+                                          type === 'error' ? '#f8d7da' : '#d1ecf1';
+            statusDiv.style.color = type === 'success' ? '#155724' : 
+                                  type === 'error' ? '#721c24' : '#0c5460';
+            statusDiv.style.borderLeft = type === 'success' ? '4px solid #28a745' :
+                                       type === 'error' ? '4px solid #dc3545' : '4px solid #17a2b8';
             statusDiv.style.display = 'block';
             
-            // 5초 후 상태 메시지 숨기기
+            // 5초 후 숨기기
             setTimeout(() => {
                 statusDiv.style.display = 'none';
             }, 5000);
@@ -673,6 +681,13 @@
             timestamp: null,
             status: '정보 저장됨 (PG결제 대기)'
         };
+        
+        // ==================== 디버그 정보 표시 ====================
+        function showDebugInfo(info) {
+            const debugDiv = document.getElementById('debug-info');
+            debugDiv.textContent = info;
+            debugDiv.style.display = 'block';
+        }
         
         // ==================== 단계 관리 함수 ====================
         function nextStep(step) {
@@ -769,42 +784,67 @@
         
         // ==================== Firestore 저장 함수 ====================
         async function savePaymentToFirestore(paymentData) {
+            console.log("Firestore 저장 시작...");
+            console.log("저장할 데이터:", paymentData);
+            
             if (!firebaseInitialized) {
-                throw new Error("Firebase가 초기화되지 않았습니다.");
+                const error = new Error("Firebase가 초기화되지 않았습니다.");
+                console.error(error);
+                throw error;
+            }
+            
+            if (!db) {
+                const error = new Error("Firestore 데이터베이스가 초기화되지 않았습니다.");
+                console.error(error);
+                throw error;
             }
             
             try {
                 // 현재 시간 추가
                 paymentData.timestamp = new Date().toISOString();
-                paymentData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+                
+                // 디버그 정보 표시
+                showDebugInfo(`데이터 저장 시도 중...\n프로젝트: ${firebaseConfig.projectId}\n컬렉션: payments\n데이터: ${JSON.stringify(paymentData, null, 2)}`);
                 
                 // Firestore에 저장
+                console.log("Firestore에 데이터 추가 중...");
                 const docRef = await db.collection('payments').add(paymentData);
                 
-                console.log('Firestore에 저장 완료! 문서 ID:', docRef.id);
-                showFirebaseStatus(`결제 정보가 저장되었습니다! (ID: ${docRef.id})`, "success");
+                console.log('Firestore 저장 성공! 문서 ID:', docRef.id);
+                showStatus(`결제 정보가 저장되었습니다! (ID: ${docRef.id})`, "success");
                 
                 return docRef.id;
                 
             } catch (error) {
                 console.error('Firestore 저장 오류:', error);
-                showFirebaseStatus("저장 중 오류 발생: " + error.message, "error");
+                console.error('오류 상세 정보:', {
+                    code: error.code,
+                    message: error.message,
+                    stack: error.stack
+                });
+                
+                showDebugInfo(`저장 오류 발생:\n코드: ${error.code}\n메시지: ${error.message}\n상세: ${error.stack}`);
+                showStatus("저장 중 오류 발생: " + error.message, "error");
+                
                 throw error;
             }
         }
         
         // ==================== 결제 처리 함수 ====================
         async function processPayment() {
+            console.log("결제 처리 시작...");
+            
             // 결제 방법 선택 확인
             if (!paymentData.paymentMethod) {
                 document.getElementById('payment-warning').style.display = 'block';
+                alert("결제 방법을 선택해주세요.");
                 return;
             }
             
             // 결제자 정보 저장
-            paymentData.payerName = document.getElementById('payer-name').value;
-            paymentData.payerEmail = document.getElementById('payer-email').value;
-            paymentData.payerPhone = document.getElementById('payer-phone').value;
+            paymentData.payerName = document.getElementById('payer-name').value.trim();
+            paymentData.payerEmail = document.getElementById('payer-email').value.trim();
+            paymentData.payerPhone = document.getElementById('payer-phone').value.trim();
             
             // 유효성 검사
             if (!paymentData.payerName || !paymentData.payerEmail || !paymentData.payerPhone) {
@@ -814,12 +854,12 @@
             
             // Firebase 초기화 확인
             if (!firebaseInitialized) {
-                alert('데이터베이스 연결에 문제가 있습니다. 다시 시도해주세요.');
+                alert('데이터베이스 연결에 문제가 있습니다. 페이지를 새로고침 후 다시 시도해주세요.');
                 return;
             }
             
             try {
-                showFirebaseStatus("결제 정보 저장 중...", "loading");
+                showStatus("결제 정보 저장 중...", "loading");
                 
                 // Firestore에 저장
                 const paymentId = await savePaymentToFirestore(paymentData);
@@ -829,26 +869,36 @@
                 
                 // 저장된 정보 표시
                 const paymentDetails = `
-                    <strong>Firestore 문서 ID:</strong> ${paymentId}<br>
-                    <strong>과정:</strong> ${paymentData.courseName}<br>
-                    <strong>결제 금액:</strong> ${paymentData.finalPrice.toLocaleString()}원<br>
-                    <strong>결제 방법:</strong> ${getPaymentMethodName(paymentData.paymentMethod)}<br>
-                    <strong>결제자:</strong> ${paymentData.payerName}<br>
-                    <strong>이메일:</strong> ${paymentData.payerEmail}<br>
-                    <strong>전화번호:</strong> ${paymentData.payerPhone}<br>
-                    <strong>상태:</strong> 정보 저장 완료 (PG결제 대기)
+                    Firestore 문서 ID: ${paymentId}
+                    과정: ${paymentData.courseName}
+                    결제 금액: ${paymentData.finalPrice.toLocaleString()}원
+                    결제 방법: ${getPaymentMethodName(paymentData.paymentMethod)}
+                    결제자: ${paymentData.payerName}
+                    이메일: ${paymentData.payerEmail}
+                    전화번호: ${paymentData.payerPhone}
+                    상태: 정보 저장 완료 (PG결제 대기)
                 `;
                 
-                document.getElementById('payment-details').innerHTML = paymentDetails;
-                document.getElementById('firestore-id').innerHTML = `<strong>데이터베이스 ID:</strong> ${paymentId}`;
+                document.getElementById('payment-details').textContent = paymentDetails;
+                document.getElementById('firestore-id').textContent = `데이터베이스 ID: ${paymentId}`;
+                document.getElementById('result-title').textContent = "결제 정보 저장 성공!";
+                document.getElementById('result-message').textContent = "Firestore에 데이터가 저장되었습니다.";
                 
                 // 로컬 스토리지에도 백업 저장
                 localStorage.setItem(`payment_${paymentId}`, JSON.stringify(paymentData));
+                localStorage.setItem('last_payment_id', paymentId);
+                
+                console.log("결제 처리 완료. 저장된 ID:", paymentId);
                 
             } catch (error) {
-                alert('결제 정보 저장 중 오류가 발생했습니다: ' + error.message);
                 console.error('결제 처리 오류:', error);
-                showFirebaseStatus("저장 실패: " + error.message, "error");
+                
+                // 오류 메시지 표시
+                document.getElementById('result-title').textContent = "저장 실패";
+                document.getElementById('result-message').textContent = `오류: ${error.message}`;
+                document.getElementById('payment-details').textContent = `저장 중 오류가 발생했습니다. 콘솔 로그를 확인해주세요.`;
+                
+                nextStep(4);
             }
         }
         
@@ -864,13 +914,13 @@
         }
         
         async function viewAllPayments() {
-            if (!firebaseInitialized) {
+            if (!firebaseInitialized || !db) {
                 alert("Firebase가 초기화되지 않았습니다.");
                 return;
             }
             
             try {
-                showFirebaseStatus("결제 내역 불러오는 중...", "loading");
+                showStatus("결제 내역 불러오는 중...", "loading");
                 
                 const querySnapshot = await db.collection('payments').orderBy('timestamp', 'desc').limit(10).get();
                 
@@ -884,25 +934,7 @@
                     const data = doc.data();
                     message += `ID: ${doc.id}\n`;
                     message += `과정: ${data.courseName}\n`;
-                    message += `금액: ${data.finalPrice.toLocaleString()}원\n`;
+                    message += `금액: ${data.finalPrice ? data.finalPrice.toLocaleString() : 0}원\n`;
                     message += `이름: ${data.payerName}\n`;
                     message += `시간: ${new Date(data.timestamp).toLocaleString('ko-KR')}\n`;
-                    message += `-------------------\n`;
-                });
-                
-                alert(message);
-                
-            } catch (error) {
-                console.error("결제 내역 조회 오류:", error);
-                alert("결제 내역을 불러오는데 실패했습니다: " + error.message);
-            }
-        }
-        
-        // ==================== 페이지 초기화 ====================
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeFirebase();
-            selectDiscount('none', 0);
-        });
-    </script>
-</body>
-</html>
+                   
