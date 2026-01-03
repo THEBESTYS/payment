@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>더베스트 어학원 - 수강료 결제</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+        
+        .logo-icon {
+            font-size: 2rem;
+            margin-right: 10px;
+            color: #f1c40f;
+        }
+        
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-top: 15px;
+            color: #ecf0f1;
+            text-decoration: none;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        
+        .payment-container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 40px;
+            position: relative;
+        }
+        
+        .step-indicator::before {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 50px;
+            right: 50px;
+            height: 2px;
+            background-color: #ddd;
+            z-index: 1;
+        }
+        
+        .step {
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .step-circle {
+            width: 32px;
+            height: 32px;
+            background-color: #ddd;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .step.active .step-circle {
+            background-color: #3498db;
+        }
+        
+        .step.completed .step-circle {
+            background-color: #2ecc71;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .section:last-child {
+            border-bottom: none;
+        }
+        
+        .section h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .section h2 i {
+            margin-right: 10px;
+            color: #3498db;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        th {
+            background-color: #f1f8ff;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+        
+        .total-row {
+            font-weight: bold;
+            background-color: #f9f9f9;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #2c3e50;
+        }
+        
+        select, input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        
+        select:focus, input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+        
+        .discount-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .discount-option {
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .discount-option:hover {
+            border-color: #3498db;
+            background-color: #f8fafc;
+        }
+        
+        .discount-option.selected {
+            border-color: #3498db;
+            background-color: #e8f4fc;
+            border-width: 2px;
+        }
+        
+        .discount-option input {
+            width: auto;
+            margin-right: 10px;
+        }
+        
+        .payment-methods {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .payment-method {
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .payment-method:hover {
+            border-color: #3498db;
+            background-color: #f8fafc;
+        }
+        
+        .payment-method.selected {
+            border-color: #3498db;
+            background-color: #e8f4fc;
+            border-width: 2px;
+        }
+        
+        .payment-method i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            display: block;
+            color: #555;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            border-radius: 5px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(to right, #3498db, #2c3e50);
+            color: white;
+            width: 100%;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(to right, #2980b9, #1a252f);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .btn-secondary {
+            background-color: #95a5a6;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #7f8c8d;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .warning {
+            color: #e74c3c;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        
+        .success-message {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 20px;
+            border-radius: 5px;
+            text-align: center;
+            margin-top: 20px;
+            border-left: 4px solid #28a745;
+        }
+        
+        .success-message i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: #28a745;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 20px;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            border-top: 1px solid #eee;
+        }
+        
+        @media (max-width: 600px) {
+            .step-indicator {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .step-indicator::before {
+                display: none;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-graduation-cap logo-icon"></i>
+                <div>
+                    <h1>더베스트 어학원 수강료 결제</h1>
+                    <p>안전하고 편리한 온라인 결제</p>
+                </div>
+            </div>
+            <a href="index.html" class="back-link">
+                <i class="fas fa-arrow-left"></i> 수강료 안내 페이지로 돌아가기
+            </a>
+        </header>
+        
+        <div class="payment-container">
+            <div class="step-indicator">
+                <div class="step active" id="step1">
+                    <div class="step-circle">1</div>
+                    <div>과정 선택</div>
+                </div>
+                <div class="step" id="step2">
+                    <div class="step-circle">2</div>
+                    <div>할인 선택</div>
+                </div>
+                <div class="step" id="step3">
+                    <div class="step-circle">3</div>
+                    <div>결제 방법</div>
+                </div>
+                <div class="step" id="step4">
+                    <div class="step-circle">4</div>
+                    <div>결제 완료</div>
+                </div>
+            </div>
+            
+            <div id="step1-content" class="step-content">
+                <div class="section">
+                    <h2><i class="fas fa-book-open"></i> 수강 과정 선택</h2>
+                    <p>학생의 학년에 맞는 과정을 선택해주세요.</p>
+                    
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>과정</th>
+                                <th>수강료 (월)</th>
+                                <th>선택</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>초등 1-3학년</td>
+                                <td>300,000원</td>
+                                <td><input type="radio" name="course" value="300000" data-course="초등 1-3학년"></td>
+                            </tr>
+                            <tr>
+                                <td>초등 4-6학년</td>
+                                <td>360,000원</td>
+                                <td><input type="radio" name="course" value="360000" data-course="초등 4-6학년"></td>
+                            </tr>
+                            <tr>
+                                <td>중등 1-2학년</td>
+                                <td>360,000원</td>
+                                <td><input type="radio" name="course" value="360000" data-course="중등 1-2학년"></td>
+                            </tr>
+                            <tr>
+                                <td>중등 3학년</td>
+                                <td>390,000원</td>
+                                <td><input type="radio" name="course" value="390000" data-course="중등 3학년"></td>
+                            </tr>
+                            <tr>
+                                <td>고등 1-2학년</td>
+                                <td>390,000원</td>
+                                <td><input type="radio" name="course" value="390000" data-course="고등 1-2학년"></td>
+                            </tr>
+                            <tr>
+                                <td>고등 3학년</td>
+                                <td>450,000원</td>
+                                <td><input type="radio" name="course" value="450000" data-course="고등 3학년"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <div class="warning" id="course-warning" style="display: none;">
+                        <i class="fas fa-exclamation-circle"></i> 과정을 선택해주세요.
+                    </div>
+                </div>
+                
+                <div class="button-group">
+                    <button class="btn btn-secondary" onclick="window.location.href='index.html'">취소</button>
+                    <button class="btn btn-primary" onclick="nextStep(2)">다음 단계</button>
+                </div>
+            </div>
+            
+            <div id="step2-content" class="step-content" style="display: none;">
+                <div class="section">
+                    <h2><i class="fas fa-tag"></i> 할인 선택</h2>
+                    <p>적용 가능한 할인을 선택해주세요. (할인은 중복 적용되지 않습니다)</p>
+                    
+                    <div class="discount-options">
+                        <div class="discount-option" onclick="selectDiscount('none', 0)">
+                            <input type="radio" name="discount" value="none" id="discount-none">
+                            <label for="discount-none">할인 없음</label>
+                        </div>
+                        <div class="discount-option" onclick="selectDiscount('sibling', 5)">
+                            <input type="radio" name="discount" value="sibling" id="discount-sibling">
+                            <label for="discount-sibling">형제 할인 (5%)</label>
+                            <small>형제/자매 동시 수강 시</small>
+                        </div>
+                        <div class="discount-option" onclick="selectDiscount('special5', 5)">
+                            <input type="radio" name="discount" value="special5" id="discount-special5">
+                            <label for="discount-special5">특별 할인 (5%)</label>
+                            <small>이벤트 및 프로모션 기간 중</small>
+                        </div>
+                        <div class="discount-option" onclick="selectDiscount('special10', 10)">
+                            <input type="radio" name="discount" value="special10" id="discount-special10">
+                            <label for="discount-special10">특별 할인 (10%)</label>
+                            <small>이벤트 및 프로모션 기간 중</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <h2><i class="fas fa-calculator"></i> 결제 금액</h2>
+                    <table>
+                        <tr>
+                            <td>선택한 과정</td>
+                            <td id="selected-course-text">-</td>
+                        </tr>
+                        <tr>
+                            <td>월 수강료</td>
+                            <td id="original-price">0원</td>
+                        </tr>
+                        <tr>
+                            <td>적용 할인</td>
+                            <td id="discount-text">없음</td>
+                        </tr>
+                        <tr class="total-row">
+                            <td>최종 결제 금액</td>
+                            <td id="final-price">0원</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div class="button-group">
+                    <button class="btn btn-secondary" onclick="prevStep(1)">이전 단계</button>
+                    <button class="btn btn-primary" onclick="nextStep(3)">다음 단계</button>
+                </div>
+            </div>
+            
+            <div id="step3-content" class="step-content" style="display: none;">
+                <div class="section">
+                    <h2><i class="fas fa-credit-card"></i> 결제 방법 선택</h2>
+                    <p>원하시는 결제 방법을 선택해주세요.</p>
+                    
+                    <div class="payment-methods">
+                        <div class="payment-method" onclick="selectPayment('card')">
+                            <i class="fas fa-credit-card"></i>
+                            <div>신용/체크카드</div>
+                        </div>
+                        <div class="payment-method" onclick="selectPayment('transfer')">
+                            <i class="fas fa-university"></i>
+                            <div>계좌이체</div>
+                        </div>
+                        <div class="payment-method" onclick="selectPayment('virtual')">
+                            <i class="fas fa-wallet"></i>
+                            <div>가상계좌</div>
+                        </div>
+                        <div class="payment-method" onclick="selectPayment('phone')">
+                            <i class="fas fa-mobile-alt"></i>
+                            <div>휴대폰 결제</div>
+                        </div>
+                    </div>
+                    
+                    <div class="warning" id="payment-warning" style="display: none;">
+                        <i class="fas fa-exclamation-circle"></i> 결제 방법을 선택해주세요.
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <h2><i class="fas fa-user"></i> 결제자 정보</h2>
+                    <div class="form-group">
+                        <label for="payer-name">이름</label>
+                        <input type="text" id="payer-name" placeholder="결제자 이름을 입력하세요">
+                    </div>
+                    <div class="form-group">
+                        <label for="payer-email">이메일</label>
+                        <input type="email" id="payer-email" placeholder="결제 확인 메일을 받을 이메일">
+                    </div>
+                    <div class="form-group">
+                        <label for="payer-phone">휴대폰 번호</label>
+                        <input type="tel" id="payer-phone" placeholder="010-1234-5678">
+                    </div>
+                </div>
+                
+                <div class="button-group">
+                    <button class="btn btn-secondary" onclick="prevStep(2)">이전 단계</button>
+                    <button class="btn btn-primary" onclick="processPayment()">결제하기</button>
+                </div>
+            </div>
+            
+            <div id="step4-content" class="step-content" style="display: none;">
+                <div class="success-message">
+                    <i class="fas fa-check-circle"></i>
+                    <h2>결제가 완료되었습니다!</h2>
+                    <p id="payment-details">결제 정보가 여기에 표시됩니다.</p>
+                    <p>수강 신청이 정상적으로 처리되었습니다.</p>
+                    <p>결제 확인 메일이 이메일로 발송되었습니다.</p>
+                    <div style="margin-top: 30px;">
+                        <button class="btn btn-primary" onclick="window.location.href='index.html'">메인 페이지로 이동</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>© 2025 더베스트 어학원. All rights reserved.</p>
+            <p>고객센터: 032-252-9600 | 이메일: gcha2514@naver.com</p>
+            <p>인천 연수구 컨벤시아대로 230번길 42 아라프라자 2층 207-1</p>
+            <p style="margin-top: 15px; font-size: 0.8rem;">이 페이지는 PG결제 시스템 연동 전 임시 결제 페이지입니다.</p>
+        </footer>
+    </div>
+
+    <script>
+        // 결제 데이터 저장
+        let paymentData = {
+            course: null,
+            courseName: '',
+            originalPrice: 0,
+            discountType: 'none',
+            discountPercent: 0,
+            finalPrice: 0,
+            paymentMethod: null,
+            payerName: '',
+            payerEmail: '',
+            payerPhone: ''
+        };
+        
+        // 단계 이동 함수
+        function nextStep(step) {
+            // 현재 단계 유효성 검사
+            if (step === 2) {
+                const selectedCourse = document.querySelector('input[name="course"]:checked');
+                if (!selectedCourse) {
+                    document.getElementById('course-warning').style.display = 'block';
+                    return;
+                }
+                
+                // 과정 정보 저장
+                paymentData.course = selectedCourse.value;
+                paymentData.courseName = selectedCourse.getAttribute('data-course');
+                paymentData.originalPrice = parseInt(selectedCourse.value);
+                
+                // 할인 단계로 이동하면서 정보 업데이트
+                updatePriceDisplay();
+            }
+            
+            if (step === 3) {
+                // 할인 선택 확인 (필수는 아님)
+                // 결제자 정보 입력으로 이동
+            }
+            
+            // 모든 단계 숨기기
+            for (let i = 1; i <= 4; i++) {
+                document.getElementById(`step${i}-content`).style.display = 'none';
+                document.getElementById(`step${i}`).classList.remove('active');
+            }
+            
+            // 대상 단계 표시
+            document.getElementById(`step${step}-content`).style.display = 'block';
+            document.getElementById(`step${step}`).classList.add('active');
+            
+            // 이전 단계 완료 표시
+            for (let i = 1; i < step; i++) {
+                document.getElementById(`step${i}`).classList.add('completed');
+            }
+        }
+        
+        function prevStep(step) {
+            nextStep(step);
+        }
+        
+        // 할인 선택 함수
+        function selectDiscount(type, percent) {
+            paymentData.discountType = type;
+            paymentData.discountPercent = percent;
+            
+            // 모든 할인 옵션 선택 해제
+            document.querySelectorAll('.discount-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            
+            // 선택한 옵션 표시
+            const selectedOption = document.querySelector(`.discount-option[onclick*="${type}"]`);
+            if (selectedOption) {
+                selectedOption.classList.add('selected');
+            }
+            
+            // 라디오 버튼 체크
+            document.querySelector(`input[name="discount"][value="${type}"]`).checked = true;
+            
+            // 가격 업데이트
+            updatePriceDisplay();
+        }
+        
+        // 가격 표시 업데이트
+        function updatePriceDisplay() {
+            if (!paymentData.course) return;
+            
+            // 원가 표시
+            document.getElementById('selected-course-text').textContent = paymentData.courseName;
+            document.getElementById('original-price').textContent = paymentData.originalPrice.toLocaleString() + '원';
+            
+            // 할인 정보 표시
+            let discountText = '없음';
+            let finalPrice = paymentData.originalPrice;
+            
+            if (paymentData.discountPercent > 0) {
+                const discountAmount = paymentData.originalPrice * (paymentData.discountPercent / 100);
+                finalPrice = paymentData.originalPrice - discountAmount;
+                
+                if (paymentData.discountType === 'sibling') {
+                    discountText = `형제 할인 (${paymentData.discountPercent}%)`;
+                } else if (paymentData.discountType.startsWith('special')) {
+                    discountText = `특별 할인 (${paymentData.discountPercent}%)`;
+                }
+            }
+            
+            document.getElementById('discount-text').textContent = discountText;
+            document.getElementById('final-price').textContent = finalPrice.toLocaleString() + '원';
+            paymentData.finalPrice = finalPrice;
+        }
+        
+        // 결제 방법 선택
+        function selectPayment(method) {
+            paymentData.paymentMethod = method;
+            
+            // 모든 결제 방법 선택 해제
+            document.querySelectorAll('.payment-method').forEach(method => {
+                method.classList.remove('selected');
+            });
+            
+            // 선택한 방법 표시
+            document.querySelector(`.payment-method[onclick*="${method}"]`).classList.add('selected');
+        }
+        
+        // 결제 처리 함수 (임시 - 실제 PG연동 시 수정 필요)
+        function processPayment() {
+            // 결제 방법 선택 확인
+            if (!paymentData.paymentMethod) {
+                document.getElementById('payment-warning').style.display = 'block';
+                return;
+            }
+            
+            // 결제자 정보 저장
+            paymentData.payerName = document.getElementById('payer-name').value;
+            paymentData.payerEmail = document.getElementById('payer-email').value;
+            paymentData.payerPhone = document.getElementById('payer-phone').value;
+            
+            // 간단한 유효성 검사
+            if (!paymentData.payerName || !paymentData.payerEmail || !paymentData.payerPhone) {
+                alert('결제자 정보를 모두 입력해주세요.');
+                return;
+            }
+            
+            // 실제 PG 연동 시 여기서 PG사 API 호출
+            // 예: window.location.href = 'https://pg-service.com/payment?amount=' + paymentData.finalPrice;
+            
+            // 임시로 결제 완료 단계로 이동
+            nextStep(4);
+            
+            // 결제 정보 표시
+            const paymentDetails = `
+                <strong>과정:</strong> ${paymentData.courseName}<br>
+                <strong>결제 금액:</strong> ${paymentData.finalPrice.toLocaleString()}원<br>
+                <strong>결제 방법:</strong> ${getPaymentMethodName(paymentData.paymentMethod)}<br>
+                <strong>결제자:</strong> ${paymentData.payerName}<br>
+                <strong>이메일:</strong> ${paymentData.payerEmail}
+            `;
+            
+            document.getElementById('payment-details').innerHTML = paymentDetails;
+            
+            // 실제 구현시 여기서 PG사로 데이터 전송
+            console.log('PG결제 데이터:', paymentData);
+            
+            // 임시: 결제 완료 데이터를 localStorage에 저장 (실제로는 서버에 전송)
+            localStorage.setItem('lastPayment', JSON.stringify(paymentData));
+        }
+        
+        // 결제 방법 이름 변환
+        function getPaymentMethodName(method) {
+            switch(method) {
+                case 'card': return '신용/체크카드';
+                case 'transfer': return '계좌이체';
+                case 'virtual': return '가상계좌';
+                case 'phone': return '휴대폰 결제';
+                default: return '알 수 없음';
+            }
+        }
+        
+        // 페이지 로드 시 첫 번째 단계 표시
+        document.addEventListener('DOMContentLoaded', function() {
+            // 기본 할인 선택 (할인 없음)
+            selectDiscount('none', 0);
+        });
+    </script>
+</body>
+</html>
